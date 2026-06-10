@@ -200,7 +200,7 @@ export default function Home() {
                   {l.label}
                 </a>
               ))}
-              <Link href="/scan/new"
+              <Link href="/scan/new" onClick={() => setMenuOpen(false)}
                 className="mt-2 block rounded-xl bg-[#007B7A] px-4 py-3 text-center text-sm font-black text-white">
                 Start scanning
               </Link>
