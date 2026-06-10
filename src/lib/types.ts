@@ -1,5 +1,7 @@
 export type ScanMode = "silver" | "golf" | "tools";
 
+export type ScanSource = "facebook" | "craigslist" | "estate_sale" | "storage_locker";
+
 export type BusinessContext = "thrift_shop" | "pawn_shop";
 
 export type ItemSetting = "single_item" | "multiple_items";

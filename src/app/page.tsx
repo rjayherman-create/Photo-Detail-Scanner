@@ -17,7 +17,7 @@ import {
 
 const navItems = [
   { label: "Dashboard", to: "/" },
-  { label: "New", to: "#scanner" },
+  { label: "New", to: "/scan/new" },
   { label: "Inventory", to: "#scan-types" },
   { label: "Analyze", to: "#sample-report" },
   { label: "Reports", to: "#pricing" },
@@ -26,7 +26,7 @@ const navItems = [
 
 const bottomNavItems = [
   { label: "Dashboard", to: "/" },
-  { label: "New", to: "#scanner" },
+  { label: "New", to: "/scan/new" },
   { label: "Inventory", to: "#scan-types" },
   { label: "Analyze", to: "#sample-report" },
 ];
@@ -99,7 +99,7 @@ export default function Home() {
       bottomNavItems={bottomNavItems}
       rightAction={
         <a
-          href="#scanner"
+          href="/scan/new"
           className="btn btn-primary hide-mobile"
         >
           Start scanning
@@ -120,7 +120,7 @@ export default function Home() {
                 A reseller&apos;s field notebook for turning bad photos into buying decisions.
               </p>
               <div className="button-row">
-                <a href="#scanner" className="btn btn-primary btn-full">
+                <a href="/scan/new" className="btn btn-primary btn-full">
                   Scan My First Lot
                 </a>
                 <a href="#sample-report" className="btn btn-secondary btn-full">
@@ -301,7 +301,7 @@ export default function Home() {
                 Turn messy listings into a buying report before you risk your cash.
               </p>
             </div>
-            <a href="#scanner" className="btn btn-primary">
+            <a href="/scan/new" className="btn btn-primary">
               Start scanning
             </a>
           </div>

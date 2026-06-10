@@ -1,9 +1,10 @@
-import { BusinessContext, ItemSetting, ScanMode } from "./types";
+import { BusinessContext, ItemSetting, ScanMode, ScanSource } from "./types";
 
 export function buildPhotoScannerPrompt(
   scanMode: ScanMode,
   businessContext: BusinessContext,
   itemSetting: ItemSetting,
+  scanSource: ScanSource,
 ) {
   return `
 You are an expert marketplace resale photo analyst.
@@ -14,6 +15,7 @@ Your job is to inspect visible details and create a practical resale/buying repo
 SCAN MODE: ${scanMode}
 BUSINESS CONTEXT: ${businessContext}
 ITEM SETTING: ${itemSetting}
+SOURCE CONTEXT: ${scanSource}
 
 You must be careful and not overstate certainty.
 If markings are unclear, say uncertain.

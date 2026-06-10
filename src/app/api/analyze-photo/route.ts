@@ -7,6 +7,7 @@ import {
   PhotoAnalysis,
   ScanHistoryEntry,
   ScanMode,
+  ScanSource,
 } from "@/lib/types";
 import {
   clearScanHistory,
@@ -121,6 +122,10 @@ function isBusinessContext(value: string): value is BusinessContext {
 function isItemSetting(value: string): value is ItemSetting {
   return ["single_item", "multiple_items"].includes(value);
 }
+function isScanSource(value: string): value is ScanSource {
+  return ["facebook", "craigslist", "estate_sale", "storage_locker"].includes(value);
+}
+
 
 async function fileToBase64(file: File) {
   const bytes = await file.arrayBuffer();
@@ -137,6 +142,10 @@ export async function POST(req: NextRequest) {
     const businessContext: BusinessContext = isBusinessContext(contextRaw)
       ? contextRaw
       : "thrift_shop";
+    const sourceRaw = String(formData.get("source") || "facebook");
+    const scanSource: ScanSource = isScanSource(sourceRaw)
+      ? sourceRaw
+      : "facebook";
     const itemSettingRaw = String(formData.get("itemSetting") || "single_item");
     const itemSetting: ItemSetting = isItemSetting(itemSettingRaw)
       ? itemSettingRaw
@@ -179,7 +188,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fallback);
     }
 
-    const prompt = buildPhotoScannerPrompt(mode, businessContext, itemSetting);
+    const prompt = buildPhotoScannerPrompt(
+      mode,
+      businessContext,
+      itemSetting,
+      scanSource,
+    );
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
