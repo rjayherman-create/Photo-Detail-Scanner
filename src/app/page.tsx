@@ -1,424 +1,375 @@
-"use client";
-
-import { useState } from "react";
-import Link from "next/link";
 import {
   ArrowRight,
-  BookOpen,
-  Check,
-  CircleDollarSign,
+  Camera,
+  CheckCircle2,
+  ClipboardList,
+  Coins,
   FileSpreadsheet,
+  Gauge,
   Gem,
-  MapPin,
+  PackageSearch,
   Printer,
-  Search,
   ShieldAlert,
   Sparkles,
-  X,
+  Zap,
 } from "lucide-react";
+import PhotoScanner from "@/components/PhotoScanner";
 
-/* ─── data ──────────────────────────────────────────────────────────── */
+const categories = [
+  "Sterling silver",
+  "Golf bags",
+  "Storage lockers",
+  "Camera gear",
+  "Tool lots",
+  "Video games",
+  "Estate boxes",
+  "Collectibles",
+];
 
-const boardCards = [
+const workflow = [
   {
-    title: "Sterling silverware",
-    tag: "Sterling mark?",
-    tagColor: "bg-[#FFD447] text-[#2a2508]",
-    rotate: "-rotate-3",
-    bg: "bg-[linear-gradient(120deg,#ece0c6,#f6ead5,#e8d9b8)]",
+    title: "Upload the photos",
+    text: "Use Facebook Marketplace, Craigslist, estate sale, auction, or storage locker pictures.",
+    icon: Camera,
   },
   {
-    title: "Golf clubs",
-    tag: "Premium shaft",
-    tagColor: "bg-[#c6ecee] text-[#00484a]",
-    rotate: "rotate-2",
-    bg: "bg-[linear-gradient(120deg,#d6e8d4,#e8f4e7,#c8dfc6)]",
+    title: "AI builds the inventory",
+    text: "The scanner reads visible items, brands, model clues, markings, condition, and risk.",
+    icon: ClipboardList,
   },
   {
-    title: "Camera gear",
-    tag: "Check model number",
-    tagColor: "bg-[#ffe0c0] text-[#7a3000]",
-    rotate: "-rotate-1",
-    bg: "bg-[linear-gradient(120deg,#d4d8de,#eaecf0,#c8cdd6)]",
+    title: "Get value + offer range",
+    text: "See retail value, quick-sale value, melt value when relevant, and a safe max offer.",
+    icon: Gauge,
   },
   {
-    title: "Tool lots",
-    tag: "Missing charger risk",
-    tagColor: "bg-[#ffd6d6] text-[#8a1a1a]",
-    rotate: "rotate-1",
-    bg: "bg-[linear-gradient(120deg,#d9cfc0,#ede5d8,#d0c4b0)]",
-  },
-  {
-    title: "Video games",
-    tag: "Good resale",
-    tagColor: "bg-[#d4f0d4] text-[#1a5c1a]",
-    rotate: "-rotate-2",
-    bg: "bg-[linear-gradient(120deg,#c8cfe8,#dde3f5,#bac3e0)]",
-  },
-  {
-    title: "Storage lockers",
-    tag: "Heavy shipping",
-    tagColor: "bg-[#e8e0c0] text-[#5a4a00]",
-    rotate: "rotate-3",
-    bg: "bg-[linear-gradient(120deg,#d6c8a8,#ede4cc,#cabda0)]",
+    title: "Export the deal report",
+    text: "Create printable reports, spreadsheets, CSV files, and shareable summaries.",
+    icon: FileSpreadsheet,
   },
 ];
 
-const valueStrip = [
+const useCases = [
   {
-    icon: CircleDollarSign,
-    value: "$425–$690",
-    label: "Estimated resale range",
-    sub: "What similar lots sell for",
-    color: "text-[#007B7A]",
+    title: "Silver Lot Scanner",
+    text: "Separate sterling from plated. Detect marks like STERLING, 925, 800, EPNS, Rogers, 90, and plate.",
+    badge: "Melt + replacement value",
   },
   {
-    icon: ShieldAlert,
-    value: "$210",
-    label: "Max safe offer",
-    sub: "Your top offer guidance",
-    color: "text-[#FF8A3D]",
+    title: "Golf Bag Analyzer",
+    text: "Identify visible clubs, bag value, missing pieces, brand clues, and part-out strategy.",
+    badge: "Facebook deal finder",
   },
   {
-    icon: Search,
-    value: "Show what others miss",
-    label: "Hidden value clues",
-    sub: "Marks, models, demand",
-    color: "text-[#18B7B2]",
-  },
-  {
-    icon: ShieldAlert,
-    value: "Avoid costly mistakes",
-    label: "Risk warnings",
-    sub: "Damage, missing parts, fakes",
-    color: "text-[#D94A38]",
+    title: "Storage Unit Bid Tool",
+    text: "Estimate visible value, hidden-value potential, trash burden, labor, and max safe bid.",
+    badge: "Bid or pass",
   },
 ];
-
-const steps = [
-  {
-    n: "1",
-    title: "Drop in the photos",
-    body: "Upload screenshots, listing photos, or photos you took in person.",
-  },
-  {
-    n: "2",
-    title: "Get the scan report",
-    body: "The app identifies visible clues, possible value, missing parts, condition risks, and resale notes.",
-  },
-  {
-    n: "3",
-    title: "Decide before you pay",
-    body: "Use the max offer, confidence score, print report, or Excel export.",
-  },
-];
-
-const scanTypes = [
-  { icon: "🥄", label: "Sterling silver" },
-  { icon: "⛳", label: "Golf clubs" },
-  { icon: "🔧", label: "Tool lots" },
-  { icon: "📷", label: "Camera gear" },
-  { icon: "🎮", label: "Video games" },
-  { icon: "📦", label: "Storage lockers" },
-  { icon: "🏠", label: "Estate boxes" },
-  { icon: "⭐", label: "Collectibles" },
-  { icon: "💻", label: "Electronics" },
-  { icon: "🎸", label: "Musical instruments" },
-];
-
-const checklist = [
-  "Is it real or plated?",
-  "Is the set complete?",
-  "Are important pieces missing?",
-  "Is the brand/model visible?",
-  "Is there damage or heavy shipping risk?",
-  "Can individual pieces sell for more than the lot?",
-  "What is the highest safe offer?",
-];
-
-/* ─── component ─────────────────────────────────────────────────────── */
 
 export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
-    <div className="min-h-screen bg-[#F8F1E3] text-[#18232E]">
-      {/* NAV */}
-      <header className="sticky top-0 z-40 border-b border-[#E4D7BD] bg-[#FFFDF7]/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 md:px-8">
-          <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#007B7A]">
-              <Search className="h-5 w-5 text-white" />
+    <main className="min-h-screen overflow-hidden bg-[#07111f] text-white">
+      <section className="relative border-b border-white/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#18d5ff33,transparent_35%),radial-gradient(circle_at_75%_20%,#ffb00024,transparent_30%),linear-gradient(135deg,#07111f_0%,#0b1d33_50%,#0a0f1a_100%)]" />
+        <div className="absolute -right-32 top-20 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-amber-400/10 blur-3xl" />
+
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:py-16">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-100 shadow-[0_0_30px_rgba(34,211,238,.14)]">
+              <Sparkles className="h-4 w-4" />
+              AI Photo-to-Profit Scanner for Resellers
             </div>
-            <div className="leading-tight">
-              <div className="text-[15px] font-black tracking-tight">Photo Detail Scanner</div>
-              <div className="text-[11px] font-semibold text-[#FF8A3D]">Find value. Bid smarter.</div>
-            </div>
-          </Link>
 
-          <nav className="hidden items-center gap-7 text-[13px] font-semibold md:flex">
-            <a href="#how-it-works"  className="hover:text-[#007B7A] transition-colors">How it works</a>
-            <a href="#scan-types"    className="hover:text-[#007B7A] transition-colors">Scan types</a>
-            <a href="#sample-report" className="hover:text-[#007B7A] transition-colors">Sample report</a>
-            <a href="#pricing"       className="hover:text-[#007B7A] transition-colors">Pricing</a>
-          </nav>
-
-          <Link
-            href="/scan/new"
-            className="hidden md:inline-flex items-center gap-2 rounded-xl bg-[#007B7A] px-5 py-2.5 text-[13px] font-black text-white shadow-[0_4px_14px_rgba(0,123,122,.28)] transition hover:bg-[#005F5E]"
-          >
-            Start scanning <ArrowRight className="h-4 w-4" />
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#E4D7BD] bg-white md:hidden"
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? <X className="h-5 w-5" /> : (
-              <span className="flex flex-col gap-1.5 items-center">
-                <span className="block h-0.5 w-5 rounded bg-[#18232E]" />
-                <span className="block h-0.5 w-5 rounded bg-[#18232E]" />
-                <span className="block h-0.5 w-5 rounded bg-[#18232E]" />
+            <h1 className="max-w-4xl text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
+              Scan messy lots.
+              <span className="block bg-gradient-to-r from-cyan-200 via-white to-amber-200 bg-clip-text text-transparent">
+                Find hidden value.
               </span>
-            )}
-          </button>
-        </div>
-
-        {menuOpen && (
-          <div className="border-t border-[#E4D7BD] bg-[#FFFDF7] px-5 py-4 md:hidden">
-            <nav className="grid gap-1">
-              {[
-                { href: "#how-it-works",  label: "How it works" },
-                { href: "#scan-types",    label: "Scan types" },
-                { href: "#sample-report", label: "Sample report" },
-                { href: "#pricing",       label: "Pricing" },
-              ].map((l) => (
-                <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)}
-                  className="rounded-lg px-3 py-2.5 text-sm font-semibold hover:bg-[#F8F1E3]">
-                  {l.label}
-                </a>
-              ))}
-              <Link href="/scan/new" onClick={() => setMenuOpen(false)}
-                className="mt-2 block rounded-xl bg-[#007B7A] px-4 py-3 text-center text-sm font-black text-white">
-                Start scanning
-              </Link>
-            </nav>
-          </div>
-        )}
-      </header>
-
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b border-[#E4D7BD] bg-[radial-gradient(circle_at_15%_30%,#fff6d4_0%,transparent_50%),radial-gradient(circle_at_85%_10%,#e8f9f8_0%,transparent_45%)]">
-        <div className="mx-auto grid max-w-7xl items-start gap-10 px-5 py-12 md:px-8 md:py-16 lg:grid-cols-2 lg:items-center">
-          <div className="max-w-2xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#E4D7BD] bg-[#FFFDF7] px-3.5 py-1.5 text-xs font-black uppercase tracking-widest text-[#007B7A]">
-              <MapPin className="h-3.5 w-3.5" /> Reseller Treasure Hunt
-            </div>
-            <h1 className="text-[clamp(2.4rem,7vw,4.5rem)] font-black leading-[0.93] tracking-tighter">
-              Find the one item<br />
-              <span className="relative inline-block">
-                everyone else
-                <svg className="absolute -bottom-1 left-0 w-full" viewBox="0 0 300 8" fill="none" preserveAspectRatio="none">
-                  <path d="M2 6 Q75 1 150 5 Q225 9 298 3" stroke="#FF8A3D" strokeWidth="3" strokeLinecap="round" fill="none" />
-                </svg>
-              </span>{" "}missed.
             </h1>
-            <p className="mt-6 max-w-xl text-[15px] leading-7 text-[#5E6A72]">
-              Upload marketplace photos, estate boxes, silverware drawers, golf bags, tool lots, camera gear,
-              or storage locker photos. Get item clues, value ranges, risk warnings, max offer guidance, and
-              exportable reports before you bid.
+
+            <p className="mt-6 max-w-2xl text-xl leading-8 text-slate-300">
+              Upload photos from Facebook Marketplace, Craigslist, estate sales,
+              storage lockers, or silverware drawers. Get an inventory, value range,
+              risks, max offer, printable report, and spreadsheet.
             </p>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/scan/new"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#007B7A] px-7 py-4 text-base font-black text-white shadow-[0_8px_22px_rgba(0,123,122,.30)] transition hover:bg-[#005F5E] hover:-translate-y-0.5">
-                <Sparkles className="h-5 w-5" /> Scan My First Lot <ArrowRight className="h-5 w-5" />
-              </Link>
-              <a href="#sample-report"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#C8BCA2] bg-[#FFFDF7] px-7 py-4 text-base font-bold transition hover:bg-[#F8F1E3]">
-                <FileSpreadsheet className="h-5 w-5" /> See Sample Report
+              <a
+                href="#scanner"
+                className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-300 px-6 py-4 text-lg font-black text-slate-950 shadow-[0_0_35px_rgba(103,232,249,.25)] transition hover:-translate-y-px hover:bg-cyan-200"
+              >
+                Start scanning
+                <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
+              </a>
+
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-4 text-lg font-bold text-white backdrop-blur transition hover:bg-white/15"
+              >
+                See how it works
               </a>
             </div>
+
+            <div className="mt-8 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
+              {categories.map((category) => (
+                <div
+                  key={category}
+                  className="rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-center text-sm font-semibold text-slate-200"
+                >
+                  {category}
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* collage board */}
-          <div className="relative rounded-3xl border border-[#E4D7BD] bg-[#ede8da] p-5 shadow-[0_20px_50px_rgba(24,35,46,.14)]">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-[#FF8A3D]" />
-              <div className="h-3 w-3 rounded-full bg-[#FFD447]" />
-              <div className="h-3 w-3 rounded-full bg-[#18B7B2]" />
-              <span className="ml-2 text-[11px] font-black uppercase tracking-widest text-[#5E6A72]">Investigation Board</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {boardCards.map((card) => (
-                <div key={card.title}
-                  className={`relative rounded-2xl border border-[#D8CAB0] bg-[#FFFDF7] p-3 shadow-[0_6px_18px_rgba(24,35,46,.12)] ${card.rotate} transition-transform hover:rotate-0 hover:scale-105`}>
-                  <div className={`mb-2 h-20 rounded-xl ${card.bg} border border-[#E4D7BD]`} />
-                  <div className="text-center text-[12px] font-black">{card.title}</div>
-                  <div className={`absolute -right-2 -top-2 max-w-[110px] rounded-lg px-2 py-1 text-[10px] font-black shadow-sm rotate-3 border border-black/10 ${card.tagColor}`}>
-                    {card.tag}
+          <div className="relative">
+            <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-r from-cyan-300/20 to-amber-300/20 blur-2xl" />
+
+            <div className="relative rounded-[2rem] border border-white/15 bg-white/[0.08] p-4 shadow-2xl backdrop-blur-xl">
+              <div className="rounded-[1.5rem] border border-white/10 bg-[#081425] p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-semibold text-cyan-200">
+                      Live Scan Report
+                    </div>
+                    <div className="text-2xl font-black">Sterling Silver Lot</div>
                   </div>
-                  <div className="absolute left-1/2 top-1 h-2 w-2 -translate-x-1/2 rounded-full bg-[#007B7A] opacity-60" />
+                  <div className="rounded-full bg-emerald-300 px-3 py-1 text-sm font-black text-emerald-950">
+                    BUY
+                  </div>
                 </div>
-              ))}
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-white/[0.07] p-4">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">
+                      Retail range
+                    </div>
+                    <div className="mt-1 text-2xl font-black">$425-$690</div>
+                  </div>
+                  <div className="rounded-2xl bg-white/[0.07] p-4">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">
+                      Max offer
+                    </div>
+                    <div className="mt-1 text-2xl font-black">$210</div>
+                  </div>
+                  <div className="rounded-2xl bg-white/[0.07] p-4">
+                    <div className="text-xs uppercase tracking-wide text-slate-400">
+                      Confidence
+                    </div>
+                    <div className="mt-1 text-2xl font-black">Medium</div>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-cyan-200/20 bg-cyan-200/10 p-4">
+                  <div className="mb-2 flex items-center gap-2 font-black text-cyan-100">
+                    <Gem className="h-5 w-5" />
+                    Hidden Value Alert
+                  </div>
+                  <p className="text-sm leading-6 text-slate-300">
+                    Markings suggest sterling or European silver. Replacement-piece
+                    resale may exceed melt value. Verify weight and close-up stamps.
+                  </p>
+                </div>
+
+                <div className="mt-4 overflow-hidden rounded-2xl border border-white/10">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-white/[0.06] text-slate-300">
+                      <tr>
+                        <th className="p-3">Item</th>
+                        <th className="p-3">Clue</th>
+                        <th className="p-3">Value</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10">
+                      <tr>
+                        <td className="p-3 font-semibold">Dinner fork</td>
+                        <td className="p-3 text-slate-300">Sterling mark</td>
+                        <td className="p-3 font-black">$65-$110</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-semibold">Serving spoon</td>
+                        <td className="p-3 text-slate-300">Pattern visible</td>
+                        <td className="p-3 font-black">$90-$160</td>
+                      </tr>
+                      <tr>
+                        <td className="p-3 font-semibold">Knife</td>
+                        <td className="p-3 text-slate-300">Weighted warning</td>
+                        <td className="p-3 font-black">$25-$60</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="flex items-center justify-center gap-2 rounded-xl bg-white/[0.07] px-3 py-3 text-sm font-bold">
+                    <Printer className="h-4 w-4" />
+                    Print
+                  </div>
+                  <div className="flex items-center justify-center gap-2 rounded-xl bg-white/[0.07] px-3 py-3 text-sm font-bold">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Excel
+                  </div>
+                  <div className="flex items-center justify-center gap-2 rounded-xl bg-white/[0.07] px-3 py-3 text-sm font-bold">
+                    <PackageSearch className="h-4 w-4" />
+                    Save
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute -bottom-5 -left-5 hidden rounded-2xl border border-amber-300/30 bg-amber-300 px-5 py-4 font-black text-slate-950 shadow-xl md:block">
+              Know before you bid.
             </div>
           </div>
         </div>
       </section>
 
-      {/* VALUE STRIP */}
-      <section className="border-b border-[#E4D7BD] bg-[#FFFDF7]">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-px bg-[#E4D7BD] sm:grid-cols-2 lg:grid-cols-4">
-          {valueStrip.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div key={item.label} className="flex items-start gap-4 bg-[#FFFDF7] px-6 py-5">
-                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F8F1E3]">
-                  <Icon className={`h-5 w-5 ${item.color}`} />
-                </div>
-                <div>
-                  <div className="text-[11px] font-black uppercase tracking-wider text-[#5E6A72]">{item.label}</div>
-                  <div className={`text-xl font-black leading-tight ${item.color}`}>{item.value}</div>
-                  <div className="mt-0.5 text-[12px] text-[#5E6A72]">{item.sub}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* THREE-STEP WORKFLOW */}
-      <section id="how-it-works" className="mx-auto max-w-7xl px-5 py-16 md:px-8">
-        <div className="mb-3 text-[11px] font-black uppercase tracking-widest text-[#007B7A]">The workflow</div>
-        <h2 className="text-[clamp(1.6rem,4vw,2.5rem)] font-black tracking-tight">From messy photos to buying decision</h2>
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {steps.map((step, i) => (
-            <div key={step.n} className="relative rounded-3xl border border-[#E4D7BD] bg-[#FFFDF7] p-7 shadow-[0_4px_16px_rgba(24,35,46,.07)]">
-              {i < steps.length - 1 && (
-                <div className="absolute -right-3 top-1/2 z-10 hidden -translate-y-1/2 md:block">
-                  <ArrowRight className="h-5 w-5 text-[#C8BCA2]" />
-                </div>
-              )}
-              <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[#007B7A] text-xl font-black text-white shadow-[0_4px_12px_rgba(0,123,122,.30)]">
-                {step.n}
-              </div>
-              <h3 className="text-xl font-black">{step.title}</h3>
-              <p className="mt-2.5 text-[14px] leading-6 text-[#5E6A72]">{step.body}</p>
+      <section className="border-b border-white/10 bg-[#09182b]">
+        <div className="mx-auto grid max-w-7xl gap-4 px-5 py-6 md:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+            <div className="mb-2 flex items-center gap-2 font-black text-cyan-200">
+              <Zap className="h-5 w-5" />
+              Fast deal analysis
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CHECKLIST + SAMPLE REPORT */}
-      <section className="border-t border-[#E4D7BD] bg-[#FFFDF7]">
-        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-16 md:px-8 lg:grid-cols-[1.15fr_.85fr]">
-          <div className="rounded-3xl border border-[#E4D7BD] bg-[#FFF9EB] p-7 shadow-[0_4px_16px_rgba(24,35,46,.07)]">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-xl bg-[#FFD447] px-3 py-1.5 text-[12px] font-black uppercase tracking-wide text-[#2a2508]">
-              <BookOpen className="h-4 w-4" /> Know before you bid
-            </div>
-            <ul className="space-y-2.5">
-              {checklist.map((item) => (
-                <li key={item} className="flex items-center gap-3 rounded-xl bg-[#FFFDF7] px-4 py-3">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-[#007B7A]">
-                    <Check className="h-3 w-3 text-[#007B7A]" />
-                  </span>
-                  <span className="text-[14px] font-semibold">{item}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="text-sm leading-6 text-slate-300">
+              Most marketplace lots are under-described. The scanner turns weak
+              photos into a structured buying report.
+            </p>
           </div>
 
-          <div id="sample-report" className="rounded-3xl border border-[#B9D6D5] bg-[#f4fdfc] p-7 shadow-[0_16px_40px_rgba(24,35,46,.13)]">
-            <div className="mb-1 text-[11px] font-black uppercase tracking-widest text-[#007B7A]">Sample Report</div>
-            <h3 className="text-4xl font-black tracking-tight">Sterling Silver Lot</h3>
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-[#D5ECEA] bg-white p-3 text-center">
-                <div className="text-[11px] text-[#5E6A72]">Estimated resale</div>
-                <div className="text-xl font-black text-[#007B7A]">$425–$690</div>
-              </div>
-              <div className="rounded-2xl border border-[#D5ECEA] bg-white p-3 text-center">
-                <div className="text-[11px] text-[#5E6A72]">Max offer</div>
-                <div className="text-xl font-black text-[#FF8A3D]">$210</div>
-              </div>
-              <div className="rounded-2xl border border-[#D5ECEA] bg-white p-3 text-center">
-                <div className="text-[11px] text-[#5E6A72]">Confidence</div>
-                <div className="text-xl font-black text-[#c68500]">Medium</div>
-              </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+            <div className="mb-2 flex items-center gap-2 font-black text-amber-200">
+              <Coins className="h-5 w-5" />
+              Hidden value detection
             </div>
-            <div className="mt-4 space-y-3 rounded-2xl border border-[#D5ECEA] bg-white p-4">
-              <div className="flex items-start gap-3">
-                <Gem className="mt-0.5 h-5 w-5 shrink-0 text-[#007B7A]" />
-                <div>
-                  <div className="text-[13px] font-black">Hidden value clue</div>
-                  <div className="text-[12px] text-[#5E6A72]">Replacement-piece resale may exceed melt value.</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-[#FF8A3D]" />
-                <div>
-                  <div className="text-[13px] font-black">Risk warning</div>
-                  <div className="text-[12px] text-[#5E6A72]">Verify sterling marks, weight, and weighted handles.</div>
-                </div>
-              </div>
+            <p className="text-sm leading-6 text-slate-300">
+              Find the one item that changes the whole deal: sterling marks,
+              premium golf clubs, camera lenses, games, tools, and collectibles.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
+            <div className="mb-2 flex items-center gap-2 font-black text-rose-200">
+              <ShieldAlert className="h-5 w-5" />
+              Risk warnings
             </div>
-            <div className="mt-5 grid grid-cols-3 gap-2">
-              <button className="flex items-center justify-center gap-1.5 rounded-xl border border-[#D5ECEA] bg-white py-2.5 text-[12px] font-bold hover:bg-[#f0faf9]">
-                <Printer className="h-4 w-4" /> Print
-              </button>
-              <button className="flex items-center justify-center gap-1.5 rounded-xl border border-[#D5ECEA] bg-white py-2.5 text-[12px] font-bold hover:bg-[#f0faf9]">
-                <FileSpreadsheet className="h-4 w-4" /> Export Excel
-              </button>
-              <button className="flex items-center justify-center gap-1.5 rounded-xl border border-[#D5ECEA] bg-white py-2.5 text-[12px] font-bold hover:bg-[#f0faf9]">
-                <Sparkles className="h-4 w-4" /> Save Scan
-              </button>
-            </div>
+            <p className="text-sm leading-6 text-slate-300">
+              Avoid plated silver, weighted handles, broken electronics, missing
+              parts, storage locker trash burden, and overpaying.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* SCAN TYPES */}
-      <section id="scan-types" className="border-t border-[#E4D7BD] bg-[#F8F1E3]">
-        <div className="mx-auto max-w-7xl px-5 py-14 md:px-8">
-          <div className="mb-3 text-[11px] font-black uppercase tracking-widest text-[#007B7A]">Categories</div>
-          <h2 className="mb-8 text-[clamp(1.4rem,3.5vw,2rem)] font-black tracking-tight">Scan any lot. Any category.</h2>
-          <div className="flex flex-wrap gap-3">
-            {scanTypes.map((t) => (
-              <Link key={t.label} href="/scan/new"
-                className="inline-flex items-center gap-2 rounded-2xl border border-[#E4D7BD] bg-[#FFFDF7] px-4 py-2.5 text-[13px] font-bold shadow-[0_2px_8px_rgba(24,35,46,.06)] transition hover:border-[#007B7A] hover:bg-[#f0faf9] hover:text-[#007B7A]">
-                <span className="text-base">{t.icon}</span> {t.label}
-              </Link>
+      <section id="how-it-works" className="bg-[#07111f] px-5 py-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <div className="mb-3 text-sm font-black uppercase tracking-[0.25em] text-cyan-200">
+              The workflow
+            </div>
+            <h2 className="text-4xl font-black tracking-tight md:text-5xl">
+              From messy photo to buying decision.
+            </h2>
+            <p className="mt-4 text-lg leading-8 text-slate-300">
+              The app is not just a photo scanner. It is a resale decision engine
+              that creates inventory, price ranges, offer advice, and exportable
+              reports.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-4">
+            {workflow.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={step.title}
+                  className="relative rounded-3xl border border-white/10 bg-white/[0.06] p-6"
+                >
+                  <div className="mb-5 flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-300 text-slate-950">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div className="text-5xl font-black text-white/10">
+                      {index + 1}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-black">{step.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">
+                    {step.text}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-white/10 bg-[#0b1d33] px-5 py-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-10 lg:grid-cols-[.85fr_1.15fr] lg:items-end">
+            <div>
+              <div className="mb-3 text-sm font-black uppercase tracking-[0.25em] text-amber-200">
+                Built for profitable lots
+              </div>
+              <h2 className="text-4xl font-black tracking-tight md:text-5xl">
+                Start with silver and golf. Expand to every messy lot.
+              </h2>
+            </div>
+            <p className="text-lg leading-8 text-slate-300">
+              The same engine can analyze sterling silver, golf bags, camera lots,
+              toolboxes, video game bundles, storage lockers, estate boxes, and
+              collectibles. Each mode has its own risk rules and valuation logic.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {useCases.map((useCase) => (
+              <div
+                key={useCase.title}
+                className="group rounded-3xl border border-white/10 bg-[#07111f] p-6 transition hover:-translate-y-1 hover:border-cyan-300/40"
+              >
+                <div className="mb-5 inline-flex rounded-full bg-amber-300 px-3 py-1 text-xs font-black uppercase tracking-wide text-slate-950">
+                  {useCase.badge}
+                </div>
+                <h3 className="text-2xl font-black">{useCase.title}</h3>
+                <p className="mt-3 leading-7 text-slate-300">{useCase.text}</p>
+                <div className="mt-6 flex items-center gap-2 font-black text-cyan-200">
+                  Analyze this category
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section id="pricing" className="border-t border-[#E4D7BD] bg-[#FFE7AC]">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-5 py-14 md:flex-row md:items-center md:px-8">
-          <div>
-            <h2 className="text-[clamp(1.6rem,5vw,2.8rem)] font-black leading-tight tracking-tight">
-              Stop guessing from bad photos.
-            </h2>
-            <p className="mt-2 max-w-md text-[15px] leading-7 text-[#3f3a2a]">
-              Turn messy listings into a buying report before you risk your cash.
-            </p>
-          </div>
-          <Link href="/scan/new"
-            className="inline-flex shrink-0 items-center gap-2 rounded-2xl bg-[#007B7A] px-8 py-4 text-[15px] font-black text-white shadow-[0_8px_22px_rgba(0,123,122,.30)] transition hover:bg-[#005F5E] hover:-translate-y-0.5">
-            <Sparkles className="h-5 w-5" /> Start scanning <ArrowRight className="h-5 w-5" />
-          </Link>
-        </div>
+      <section id="scanner" className="bg-slate-50 text-slate-950">
+        <PhotoScanner />
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-[#E4D7BD] bg-[#FFFDF7]">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 py-6 text-[12px] text-[#5E6A72] md:flex-row md:px-8">
-          <span className="font-semibold text-[#18232E]">Photo Detail Scanner</span>
-          <span>Built for practical reseller decisions.</span>
-          <a href="#" className="font-semibold text-[#007B7A] hover:underline">Back to top ↑</a>
+      <section className="bg-[#07111f] px-5 py-14">
+        <div className="mx-auto max-w-5xl rounded-[2rem] border border-white/10 bg-gradient-to-r from-cyan-300/15 to-amber-300/15 p-8 text-center shadow-2xl">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-300 text-slate-950">
+            <CheckCircle2 className="h-7 w-7" />
+          </div>
+          <h2 className="text-4xl font-black tracking-tight">
+            The deal is won before the pickup.
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-slate-300">
+            Scan first. Price fast. Ask better questions. Know your max offer.
+            Export the report and keep every deal organized.
+          </p>
+          <a
+            href="#scanner"
+            className="mt-7 inline-flex items-center justify-center gap-2 rounded-2xl bg-cyan-300 px-7 py-4 text-lg font-black text-slate-950"
+          >
+            Scan a lot now
+            <ArrowRight className="h-5 w-5" />
+          </a>
         </div>
-      </footer>
-    </div>
+      </section>
+    </main>
   );
 }
