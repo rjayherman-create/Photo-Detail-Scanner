@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { buildPhotoScannerPrompt } from "@/lib/prompts";
-import { PhotoAnalysis, ScanHistoryEntry, ScanMode } from "@/lib/types";
+import {
+  BusinessContext,
+  ItemSetting,
+  PhotoAnalysis,
+  ScanHistoryEntry,
+  ScanMode,
+} from "@/lib/types";
 import {
   clearScanHistory,
   getDatabaseStatus,
@@ -105,16 +111,15 @@ async function saveHistorySafe(mode: ScanMode, analysis: PhotoAnalysis) {
 }
 
 function isValidMode(mode: string): mode is ScanMode {
-  return [
-    "general",
-    "silver",
-    "golf",
-    "tools",
-    "camera",
-    "video_games",
-    "storage_locker",
-    "collectibles",
-  ].includes(mode);
+  return ["silver", "golf", "tools"].includes(mode);
+}
+
+function isBusinessContext(value: string): value is BusinessContext {
+  return ["thrift_shop", "pawn_shop"].includes(value);
+}
+
+function isItemSetting(value: string): value is ItemSetting {
+  return ["single_item", "multiple_items"].includes(value);
 }
 
 async function fileToBase64(file: File) {
@@ -126,8 +131,16 @@ async function fileToBase64(file: File) {
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const modeRaw = String(formData.get("mode") || "general");
-    const mode: ScanMode = isValidMode(modeRaw) ? modeRaw : "general";
+    const modeRaw = String(formData.get("mode") || "silver");
+    const mode: ScanMode = isValidMode(modeRaw) ? modeRaw : "silver";
+    const contextRaw = String(formData.get("businessContext") || "thrift_shop");
+    const businessContext: BusinessContext = isBusinessContext(contextRaw)
+      ? contextRaw
+      : "thrift_shop";
+    const itemSettingRaw = String(formData.get("itemSetting") || "single_item");
+    const itemSetting: ItemSetting = isItemSetting(itemSettingRaw)
+      ? itemSettingRaw
+      : "single_item";
 
     const files = formData.getAll("photos").filter(Boolean) as File[];
 
@@ -166,7 +179,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fallback);
     }
 
-    const prompt = buildPhotoScannerPrompt(mode);
+    const prompt = buildPhotoScannerPrompt(mode, businessContext, itemSetting);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

@@ -14,7 +14,13 @@ import {
   Sparkles,
   Upload,
 } from "lucide-react";
-import { PhotoAnalysis, ScanHistoryEntry, ScanMode } from "@/lib/types";
+import {
+  BusinessContext,
+  ItemSetting,
+  PhotoAnalysis,
+  ScanHistoryEntry,
+  ScanMode,
+} from "@/lib/types";
 import ReportActions from "@/components/ReportActions";
 import PrintableReport from "@/components/PrintableReport";
 
@@ -23,11 +29,6 @@ const scanModes: {
   label: string;
   description: string;
 }[] = [
-  {
-    value: "general",
-    label: "General Lot",
-    description: "Mixed Facebook, Craigslist, estate, or garage-sale lot.",
-  },
   {
     value: "silver",
     label: "Silver / Flatware",
@@ -43,26 +44,16 @@ const scanModes: {
     label: "Tools",
     description: "Toolboxes, hand tools, rust, missing pieces, risk.",
   },
-  {
-    value: "camera",
-    label: "Camera Gear",
-    description: "Bodies, lenses, flashes, bags, chargers, lens value.",
-  },
-  {
-    value: "video_games",
-    label: "Video Games",
-    description: "Consoles, games, controllers, cables, untested risk.",
-  },
-  {
-    value: "storage_locker",
-    label: "Storage Locker",
-    description: "Visible value, hidden value, trash burden, max bid.",
-  },
-  {
-    value: "collectibles",
-    label: "Collectibles",
-    description: "Toys, records, books, figures, vintage items.",
-  },
+];
+
+const businessContexts: { value: BusinessContext; label: string }[] = [
+  { value: "thrift_shop", label: "Thrift shop" },
+  { value: "pawn_shop", label: "Pawn shop" },
+];
+
+const itemSettings: { value: ItemSetting; label: string }[] = [
+  { value: "single_item", label: "Single item" },
+  { value: "multiple_items", label: "Multiple items" },
 ];
 
 function money(value: number | null | undefined) {
@@ -82,8 +73,27 @@ function decisionClass(decision?: string) {
   return "bg-slate-100 text-slate-800 border-slate-200";
 }
 
+function worthSellingScore(analysis: PhotoAnalysis) {
+  const decision = analysis.buyRecommendation?.decision;
+  const confidence = analysis.confidence;
+  let score = 50;
+
+  if (decision === "buy") score += 30;
+  if (decision === "maybe") score += 10;
+  if (decision === "pass") score -= 25;
+  if (decision === "need_more_photos") score -= 10;
+
+  if (confidence === "high") score += 15;
+  if (confidence === "medium") score += 5;
+  if (confidence === "low") score -= 10;
+
+  return Math.max(0, Math.min(100, score));
+}
+
 export default function PhotoScanner() {
   const [mode, setMode] = useState<ScanMode>("silver");
+  const [businessContext, setBusinessContext] = useState<BusinessContext>("thrift_shop");
+  const [itemSetting, setItemSetting] = useState<ItemSetting>("single_item");
   const [files, setFiles] = useState<File[]>([]);
   const [analysis, setAnalysis] = useState<PhotoAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
@@ -91,6 +101,7 @@ export default function PhotoScanner() {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [mobileReportTab, setMobileReportTab] = useState<"overview" | "inventory" | "plan">("overview");
   const [historyEntries, setHistoryEntries] = useState<ScanHistoryEntry[]>([]);
+  const [costInput, setCostInput] = useState("");
   const [backendStatus, setBackendStatus] = useState<{
     aiConfigured: boolean;
     database: {
@@ -159,6 +170,8 @@ export default function PhotoScanner() {
 
       const form = new FormData();
       form.append("mode", mode);
+      form.append("businessContext", businessContext);
+      form.append("itemSetting", itemSetting);
       files.forEach((file) => form.append("photos", file));
 
       const res = await fetch("/api/analyze-photo", {
@@ -259,6 +272,16 @@ export default function PhotoScanner() {
     if (recommendation === "pass") return "bg-rose-100 text-rose-800";
     return "bg-slate-200 text-slate-700";
   }
+
+  const parsedCost = Number(costInput);
+  const hasCost = Number.isFinite(parsedCost) && parsedCost >= 0;
+  const quickSaleLow = analysis?.valueEstimate?.likelyQuickSaleLow ?? null;
+  const quickSaleHigh = analysis?.valueEstimate?.likelyQuickSaleHigh ?? null;
+  const quickSaleAvg =
+    quickSaleLow !== null && quickSaleHigh !== null
+      ? Math.round((quickSaleLow + quickSaleHigh) / 2)
+      : null;
+  const profitEstimate = hasCost && quickSaleAvg !== null ? quickSaleAvg - parsedCost : null;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
@@ -375,6 +398,53 @@ export default function PhotoScanner() {
                 <PackageSearch className="h-5 w-5" />
                 Step 1: Choose scanner mode
               </h2>
+
+              <div className="mt-4 grid gap-4">
+                <div>
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Business setting
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {businessContexts.map((context) => (
+                      <button
+                        key={context.value}
+                        type="button"
+                        onClick={() => setBusinessContext(context.value)}
+                        className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+                          businessContext === context.value
+                            ? "border-slate-900 bg-slate-900 text-white"
+                            : "bg-white text-slate-700"
+                        }`}
+                      >
+                        {context.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Item setting
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {itemSettings.map((setting) => (
+                      <button
+                        key={setting.value}
+                        type="button"
+                        onClick={() => setItemSetting(setting.value)}
+                        className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+                          itemSetting === setting.value
+                            ? "border-slate-900 bg-slate-900 text-white"
+                            : "bg-white text-slate-700"
+                        }`}
+                      >
+                        {setting.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <div className="mt-4 grid gap-2">
                 {scanModes.map((m) => (
                   <button
@@ -657,6 +727,32 @@ export default function PhotoScanner() {
                   </div>
                   <div className="mt-1 text-xs text-slate-500">
                     For silver only. Requires confirmed purity and weight.
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border bg-white p-5 shadow-sm">
+                  <div className="text-sm text-slate-500">Worth selling score</div>
+                  <div className="mt-1 text-2xl font-bold">
+                    {worthSellingScore(analysis)}/100
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    Combines recommendation and confidence.
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border bg-white p-5 shadow-sm">
+                  <div className="text-sm text-slate-500">Profit calculator</div>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    value={costInput}
+                    onChange={(e) => setCostInput(e.target.value)}
+                    placeholder="Enter your buy cost"
+                    className="mt-2 w-full rounded-lg border px-3 py-2 text-sm"
+                  />
+                  <div className="mt-2 text-sm text-slate-600">
+                    Est. profit at quick-sale average: {money(profitEstimate)}
                   </div>
                 </div>
               </div>

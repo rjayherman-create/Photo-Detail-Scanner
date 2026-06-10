@@ -1,12 +1,8 @@
-export type ScanMode =
-  | "general"
-  | "silver"
-  | "golf"
-  | "tools"
-  | "camera"
-  | "video_games"
-  | "storage_locker"
-  | "collectibles";
+export type ScanMode = "silver" | "golf" | "tools";
+
+export type BusinessContext = "thrift_shop" | "pawn_shop";
+
+export type ItemSetting = "single_item" | "multiple_items";
 
 export type PhotoAnalysis = {
   scanMode: ScanMode;
